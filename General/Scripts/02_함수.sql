@@ -381,7 +381,7 @@ FROM DUAL;
 -- '24년 08월 16일 금요일 오후 2시 15분 30초'
 SELECT 
 		TO_DATE('24년 08월 16일 금요일 오후 2시 15분 30초', 
-					'YY"년" MM"월" DD"일" DAY AM HH"시" MI"분" SS"초"'  )
+					'YY"년" MM"월" DD"일" DAY AM HH"시" MI"분" SS"초"'  ) "시간"
 FROM DUAL;
 
 
