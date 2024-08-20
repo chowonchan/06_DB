@@ -259,3 +259,135 @@
     - > ALL, < ALL : 여러개의 결과값의 모든 값보다 큰 / 작은 경우
                      가장 큰 값 보다 큰가? / 가장 작은 값 보다 작은가?
     - EXISTS / NOT EXISTS : 값이 존재하는가? / 존재하지 않는가?
+
+  - { IN / NOT IN }
+
+    SELECT 
+        EMP_ID, 
+        EMP_NAME, 
+        NVL(DEPT_TITLE, '없음') AS DEPT_TITLE , 
+        JOB_NAME,
+        CASE
+                -- 조건
+            WHEN EMP_ID IN (SELECT DISTINCT MANAGER_ID
+                            FROM EMPLOYEE
+                            WHERE MANAGER_ID IS NOT NULL)
+                  
+                -- 조건이 TRUE 인경우 수행
+            THEN '사수'
+            ELSE '사원'
+        END AS "구분"
+        
+    FROM EMPLOYEE
+    JOIN JOB USING(JOB_CODE)
+    LEFT JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
+    ORDER BY EMP_ID ASC;
+
+-- { > ANY, < ANY }
+
+  -- 대리 직급의 직원들 중에서 과장 직급의 최소 급여보다 많이 받는 직원의
+  -- 사번, 이름, 직급, 급여를 조회하세요
+
+    SELECT EMP_ID, EMP_NAME, JOB_NAME, SALARY
+    FROM EMPLOYEE
+    JOIN JOB USING (JOB_CODE)
+    WHERE JOB_NAME = '대리'
+    AND 	SALARY > ANY (
+        SELECT SALARY -- 476만, 320만, 350만
+        FROM EMPLOYEE
+        JOIN JOB USING (JOB_CODE)
+        WHERE JOB_NAME = '과장');
+
+-- { > ALL, < ALL }
+
+  -- 차장 직급의 급여의 가장 큰 값보다 많이 받는 과장 직급의 직원
+  -- 사번, 이름, 직급, 급여를 조회하세요
+
+    SELECT EMP_ID, EMP_NAME, JOB_NAME, SALARY
+    FROM EMPLOYEE E
+    JOIN JOB      J ON (E.JOB_CODE = J.JOB_CODE)
+    WHERE JOB_NAME = '과장'
+    AND   SALARY > ALL (
+        SELECT SALARY -- 380만
+        FROM EMPLOYEE
+        JOIN JOB USING (JOB_CODE)
+        WHERE JOB_NAME = '차장'
+    );
+
+
+3. 다중열 서브쿼리 (단일행 = 결과값은 한 행)
+-- 서브쿼리 SELECT 절에 나열된 컬럼 수가 여러개 일 때
+
+  -- 퇴사한 여직원과 같은 부서, 같은 직급에 해당하는
+  -- 사원의 이름, 직급, 부서, 입사일을 조회 
+
+  SELECT EMP_NAME, DEPT_CODE, JOB_CODE, HIRE_DATE
+  FROM EMPLOYEE
+  WHERE (DEPT_CODE, JOB_CODE) = ( -- 컬럼 두가지 동시에 비교
+      SELECT  DEPT_CODE, JOB_CODE
+      FROM EMPLOYEE
+      WHERE ENT_YN = 'Y' -- 퇴사여부 = 'Y' = 퇴사한 직원
+      AND 	SUBSTR(EMP_NO,8,1) IN ('2', '4')
+  );
+  --> 여러 컬럼을 묶어서 한 번에 비교해
+  --  모두 같은 행만 조회 결과(RESULT SET)에 포함시킴
+
+
+4. 다중행 다중열 서브쿼리
+--    서브쿼리 조회 결과 행 수와 열 수가 여러개 일 때
+
+-- 본인 직급의 평균 급여를 받고 있는 직원의
+-- 사번, 이름, 직급, 급여를 조회하세요
+-- 단, 급여와 급여 평균은 만원단위로 계산하세요 TRUNC(컬럼명, -4)
+
+  SELECT EMP_ID, EMP_NAME, JOB_CODE, SALARY
+  FROM EMPLOYEE
+  WHERE (JOB_CODE, SALARY) IN (
+      SELECT JOB_CODE, TRUNC(AVG(SALARY), -4)
+      FROM EMPLOYEE
+      GROUP BY JOB_CODE);
+
+
+
+   5. 상[호연]관 서브쿼리
+    --    상관 쿼리는 메인쿼리가 사용하는 테이블값을 서브쿼리가 이용해서 결과를 만듦
+    --    메인쿼리의 테이블값이 변경되면 서브쿼리의 결과값도 바뀌게 되는 구조임
+
+    -- 보통의 SELECT 문은 서브쿼리 -> 메인쿼리 순서로 해석하는데
+    -- 상관 서브쿼리는 
+    -- 메인쿼리 1행 해석 -> 서브쿼리 수행 -> 다시 메인쿼리 1행 해석 -> 서브쿼리 수행
+      -- .... (메인쿼리 모든행 조회할 때 까지 반복)
+      
+    -- 상관쿼리는 먼저 메인쿼리 한 행을 조회하고
+    -- 해당 행이 서브쿼리의 조건을 충족하는지 확인하여 SELECT를 진행함
+
+    -- 사수가 현재 테이블에 존재하는 직원의 사번, 이름, 부서명, 사수사번 조회
+
+    SELECT EMP_ID, EMP_NAME, DEPT_TITLE, MANAGER_ID
+    FROM EMPLOYEE MAIN
+    LEFT JOIN DEPARTMENT ON( DEPT_ID = DEPT_CODE)
+    WHERE EXISTS (	 -- 서브쿼리 조회 결과가 있으면 TRUE == 해당 행을 결과에 포함
+        SELECT '있음' -- 아무거나 써도 상관 없음
+        FROM EMPLOYEE SUB
+        WHERE "SUB".EMP_ID = "MAIN".MANAGER_ID
+    );
+    
+
+    -- 직급별 급여 평균보다 급여를 많이 받는 직원의 
+    -- 이름, 직급코드, 급여 조회
+
+    SELECT AVG(SALARY)
+    FROM EMPLOYEE
+    GROUP BY JOB_CODE
+    ORDER BY JOB_CODE ASC;
+
+    SELECT EMP_NAME, JOB_CODE, SALARY
+    FROM EMPLOYEE "MAIN" -- 메인쿼리 테이블 별칭이 "MAIN"
+    WHERE SALARY > (
+        SELECT AVG(SALARY) 
+        FROM EMPLOYEE "SUB" -- 서브쿼리 테이블 별칭이 "SUB"
+        WHERE SUB.JOB_CODE = MAIN.JOB_CODE
+        -- 먼저 해석된 메인쿼리의 1개행에
+        -- JOB_CODE 값을 얻어와
+        -- 서브쿼리 해석에 사용
+    );
