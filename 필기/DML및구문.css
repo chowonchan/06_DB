@@ -163,7 +163,7 @@ SELECT, INSERT, UPDATE, DELETE, MERGE
 *********[ DDL (Data Definition Language) ] : 데이터 정의 언어
 
 - 데이터 정의 언어로 객체(OBJECT)를 만들고(CREATE), 수정하고(ALTER), 
-  삭제(DROP)하는 구문을 말함
+  삭제(DROP)하는 등 데이터의 전체 구조를 정의하는 언어
 
 
   CREATE
@@ -185,28 +185,36 @@ VARCHAR2
 NVARCHAR2
 
 /*
-NUMBER : 숫자형(정수, 실수)
-CHAR(크기) : "고정"길이 문자형 (2000BYTE) 
-        -> ex) CHAR(10) 컬럼에 'ABC' 3BYTE 문자열만 저장해도 10BYTE 저장공간을 모두 사용. 
-        - 전화번호 같은 것에 사용
+    NUMBER : 숫자형(정수, 실수)
+    CHAR(크기) : "고정"길이 문자형 (2000BYTE) 
+            -> ex) CHAR(10) 컬럼에 'ABC' 3BYTE 문자열만 저장해도 10BYTE 저장공간을 모두 사용. 
+            - 전화번호 같은 것에 사용
 
-VARCHAR2(크기) : "가변"길이 문자형 (4000 BYTE)
--> ex) VARCHAR2(10) 컬럼에 'ABC' 3BYTE 문자열만 저장하면 나머지 7BYTE를 반환함.
+    VARCHAR2(크기) : "가변"길이 문자형 (4000 BYTE)
+    -> ex) VARCHAR2(10) 컬럼에 'ABC' 3BYTE 문자열만 저장하면 나머지 7BYTE를 반환함.
 
-** VARCHAR2 주의사항 **
--오라클은 기본적으로 UTF-8 문자 인코딩을 사용하는데 
-UTF-8 은
+    ** VARCHAR2 주의사항 **
+    - 오라클은 기본적으로 UTF-8 문자 인코딩을 사용하는데 
+      UTF-8 은
 
-영어/숫자 : 1BYTE
-한글 		 : 3BYTE
+    영어/숫자 : 1BYTE
+    한글 		 : 3BYTE
 
-로 저장하기 때문에 한글 데이터 저장 시 크기 계산을 주의해야 한다 !!
+    로 저장하기 때문에 한글 데이터 저장 시 크기 계산을 주의해야 한다 !!
 
 
-NVARCHAR2(문자 개수) : "가변" 길이 문자형( 4000BYTE )
-- BYTE크기 단위가 아닌 글자 수(문자 개수)로 크기를 지정하는 타입 */
+    NVARCHAR2(문자 개수) : "가변" 길이 문자형( 4000BYTE )
+    - BYTE크기 단위가 아닌 글자 수(문자 개수)로 크기를 지정하는 타입 
 
-CREATE TABLE "MEMBER"(
+    DATE : 날짜 타입
+    TIMESTAMP : 날짜 타입( MS단위 + UTE기준 시차)
+    
+    BLOB : 대용량 이진 데이터 (4GB)
+    CLOB : 대용량 문자 데이터 (4GB)
+*/
+
+CREATE TABLE "테이블명"(
+    컬럼명 자료형(크기)
 		MEMBER_ID VARCHAR2(20BYTE),
 		MEMBER_PW VARCHAR2(20BYTE),
 		MEMBER_NAME VARCHAR2(15BYTE),
@@ -238,16 +246,26 @@ COMMENT ON COLUMN "MEMBER".ENROLL_DATE IS '회원 가입일';
       *****
       제약조건 종류
 
-      NOT NULL,
-      UNIQUE, 
-      PRIMARY KEY, 
-      CHECK, 
-      FOREIGN KEY.
+      NOT NULL    : 지정된 컬럼에 무조건 값이 존재해야함
+      UNIQUE      : 지정된 컬럼에 중복된 값이 존재 할 수 없다 
+                  -> 단, 비교불가인 값이 없는 NULL은 가능
+
+      PRIMARY KEY : 각 행을 구분하기 위한 식별 역할의 컬럼을 지정
+                  -> 컬럼에 저장된 겂만 알면 모든 행을 구별 할 수 있음
+                  -> 중복 x (UNIQUE) + 무조건 값이 존재(NOT NULL)
+                  -> PK는 테이블에 1개만 존재 가능 (한 컬럼X)
+
+      FOREIGN KEY : 자식 테이블의 한 컬럼에 저장될 수 있는 값은 
+                *** 부모 테이블의 한 컬럼(PK, UNIQUE)에 작성된 값만 쓸수 있다
+                  -> 자식 테이블이 부모 테이블을 참조
+                  부모 - 자식 관계 형성 / JOIN의 연결 기준이 될 수 있다
+
+      CHECK       : 컬럼에 지정된 값만 저장할 수 있게 하는 제약조건
       
   */
 
 
-  1. NOT NULL 
+  /* 1. NOT NULL  */
   -- 해당 컬럼에 반드시 값이 기록되어야 하는 경우 사용
   -- 삽입/수정시 'NULL값을 허용하지 않도록' 컬럼레벨에서 제한
 
@@ -268,7 +286,7 @@ COMMENT ON COLUMN "MEMBER".ENROLL_DATE IS '회원 가입일';
   );
 
 
-  2. UNIQUE 제약조건 
+  /* 2. UNIQUE 제약조건  */
     -- 컬럼에 입력 값에 대해서 중복을 제한하는 제약조건
     -- 컬럼레벨에서 설정 가능, 테이블 레벨에서 설정 가능
     -- 단, UNIQUE 제약 조건이 설정된 컬럼에 "NULL 값은 중복 삽입 가능".
@@ -287,7 +305,7 @@ COMMENT ON COLUMN "MEMBER".ENROLL_DATE IS '회원 가입일';
     CONSTRAINT USER_ID_NAME_U UNIQUE(USER_ID,USER_NAME)
 
 
-  3. PRIMARY KEY(기본키) 제약조건 
+  /* 3. PRIMARY KEY(기본키) 제약조건  */
 
     -- 테이블에서 한 행의 정보를 찾기위해 사용할 컬럼을 의미함
 
@@ -301,10 +319,9 @@ COMMENT ON COLUMN "MEMBER".ENROLL_DATE IS '회원 가입일';
     --> 같은 식별 번호 값 삽입시 오류 , NULL 값 삽입시 오류
 
 
-
-
   /* 관계형 데이터베이스 핵심 */
-  4. FOREIGN KEY(외부키 / 외래키) 제약조건 
+
+  /* 4. FOREIGN KEY(외부키 / 외래키) 제약조건  */
     ****
     -- 자식 테이블 컬럼에 저장될 수 있는 값은 
         부모 테이블 컬렘에 작성된 값만 저장 가능
@@ -324,12 +341,16 @@ COMMENT ON COLUMN "MEMBER".ENROLL_DATE IS '회원 가입일';
       -- * 참조될 수 있는 컬럼은 PRIMARY KEY컬럼과, UNIQUE 지정된 컬럼만 외래키로 사용할 수 있음
       --참조할 테이블의 참조할 컬럼명이 생략이 되면, PRIMARY KEY로 설정된 컬럼이 자동 참조할 컬럼이 됨
 
+      -- 부모 테이블 : 참조를 "당하는" 테이블 (USER_GRADE)
+      -- 자식 테이블 : 참조를 "하는" 테이블 	 (USER_USED_FK)
+
 
       1) ON DELETE RESTRICTED(삭제 제한)로 기본 지정되어 있음
       -- FOREIGN KEY로 지정된 컬럼에서 사용되고 있는 값일 경우
       -- 제공하는 컬럼의 값은 삭제하지 못함
 
-      2) ON DELETE SET NULL : 부모키 삭제시 자식키를 NULL로 변경하는 옵션
+      2)) ON DELETE SET NULL : 부모키 삭제시 참조 값을 가지고 있는
+                               자식키를 NULL로 변경하는 옵션
 
       컬럼명 자료형(크기) 
       [CONSTRAINT 이름] 
@@ -337,11 +358,11 @@ COMMENT ON COLUMN "MEMBER".ENROLL_DATE IS '회원 가입일';
       ON DELETE SET NULL
 
 
-      3) ON DELETE CASCADE : 부모키 삭제시 자식키도 함께 삭제됨
+      2)) ON DELETE CASCADE : 부모키 삭제시 자식키도 함께 삭제됨
       -- 부모키 삭제시 값을 사용하는 자식 테이블의 컬럼에 해당하는 행이 삭제가 됨
 
 
-  5. CHECK 제약조건 : 컬럼에 기록되는 값에 조건 설정을 할 수 있음
+  /* 5. CHECK 제약조건 : 컬럼에 기록되는 값에 조건 설정을 할 수 있음 */
     -- CHECK (컬럼명 비교연산자 비교값)
     -- 주의 : 비교값은 리터럴만 사용할 수 있음, 변하는 값이나 함수 사용 못함
 
@@ -350,7 +371,7 @@ COMMENT ON COLUMN "MEMBER".ENROLL_DATE IS '회원 가입일';
   	  CHECK( 이름 IN (컬럼명 비교연산자 비교값) )
 
 
-  6. SUBQUERY를 이용한 테이블 생성
+  /* 6. SUBQUERY를 이용한 테이블 생성 */
     -- 컬럼명, 데이터 타입, 값이 복사되고, 제약조건은 NOT NULL 만 복사됨
 
     JOIN 후 원하는 컬럼만 테이블로 복사 ( AS 후 괄호 시 오류 )
@@ -367,21 +388,219 @@ COMMENT ON COLUMN "MEMBER".ENROLL_DATE IS '회원 가입일';
 
 
   7. 제약조건 추가
-    -- ALTER TABLE 테이블명 
-       ADD [CONSTRAINT 제약조건명] 
-       PRIMARY KEY(컬럼명)
 
-    -- ALTER TABLE 테이블명 
-       ADD [CONSTRAINT 제약조건명] 
-       FOREIGN KEY(컬럼명) 
-       REFERENCES 참조 테이블명(참조컬럼명)
+  /* 1. 제약조건 추가 / 삭제 */
+
+    -- * 작성법 중 [] 대괄호 : 생략 가능(선택)
+
+    -- 제약조건 추가 : 
+          ALTER TABLE 테이블명 
+          ADD [CONSTRAINT 제약조건명] 
+          제약조건(컬럼명) REFERENCES 테이블명[(컬럼명)];
+
+          ALTER TABLE 테이블명 
+          ADD [CONSTRAINT 제약조건명] 
+          제약조건(컬럼명)
+
+          DEPT_COPY 테이블의 DEPT_TITLE 컬럼에 NOT NULL 제약조건 추가
+          -- * NOT NULL 제약조건은 다루는 방법이 다름
+          -->  NOT NULL을 제외한 제약 조건은 추가적인 조건으로 인식됨.(ADD/DROP)
+          -->  NOT NULL은 기존 컬럼의 성질을 변경하는 것으로 인식됨.(MODIFY)
+
+    -- 제약조건 삭제 : ALTER TABLE 테이블명
+    --                 DROP CONSTRAINT 제약조건명;
 
       --> 참조 테이블의 PK를 기본키를 FK로 사용하는 경우 참조컬럼명 생략 가능
     
     -- ALTER TABLE 테이블명 ADD [CONSTRAINT 제약조건명] UNIQUE(컬럼명)
-
     -- ALTER TABLE 테이블명 ADD [CONSTRAINT 제약조건명] CHECK(컬럼명 비교연산자 비교값)
-
     -- ALTER TABLE 테이블명 MODIFY 컬럼명 NOT NULL;
 
-**********[ DCL ]
+
+  /* 2. 컬럼 추가/수정/삭제 */
+      컬럼 추가 : ALTER TABLE 테이블명 
+                  ADD(컬럼명 데이터타입 [DEFAULT '값']);
+                                          /* 데이터타입 :  CHAR, VARCHAR2 등 */
+      컬럼 수정 : ALTER TABLE 테이블명 
+                  MOIDFY 컬럼명 데이터타입;   (데이터 타입 변경)
+
+                  ALTER TABLE 테이블명 
+                  MOIDFY 컬럼명 DEFAULT '값'; (기본값 변경)
+    
+      --> ** 데이터 타입 수정 시 컬럼에 저장된 데이터 크기 미만으로 변경할 수 없다.
+      -- EX) CHAR(3) 짜리 컬럼에 'ABC' 저장된 상태
+      -- 	-> CHAR(1)로 수정 하려고하면 오류 발생	
+      
+
+      -- 테이블 명의 컬럼의 기본값을 '수정할 값'으로 모두 변경
+        UPDATE 테이블 명
+        SET 컬럼 = DEFAULT;
+
+      컬럼 삭제 : ALTER TABLE DEPT_COPY
+                  DROP COLUMN 컬럼명;
+                  -- 컬럼들 전부 삭제는 안됨
+
+
+  /* 3. 테이블 삭제 */
+
+      -- [작성법]
+      -- DROP TABLE 테이블명 [CASCADE CONSTRAINTS];
+
+  
+  /* 4. 컬럼, 제약조건, 테이블 이름 변경(RENAME) */
+
+  1) 컬럼명 변경 : ALTER TABLE 테이블명 RENAME COLUMN 컬럼명 TO 변경명;
+  -- DEPT_TITLE -> DEPT_NAME으로 변경
+  
+  
+  -- 2) 제약조건명 변경 : ALTER TABLE 테이블명 RENAME CONSTRAINT 제약조건명 TO 변경명;
+  -- DEPT_COPY_PK -> PK_DCOPY 로 변경
+  
+  
+  -- 3) 테이블명 변경 : ALTER TABLE 테이블명 RENAME TO 변경명;
+  -- DEPT_COPY -> DCOPY 변경
+
+      ALTER TABLE
+      컬럼(추가,수정, 삭제)
+      제약조건(추가, 삭제)
+      이름변경(컬럼명, 제약조건명,테이블명)
+
+
+
+
+  /* 인덱스 성능 확인용 테이블 생성 */
+    CREATE TABLE TB_IDX_TEST(
+      TEST_NO NUMBER PRIMARY KEY, -- 자동으로 UNIQUE INDEX생성됨
+      TEST_ID VARCHAR2(20) NOT NULL
+    );
+
+
+    /* 관리자 계정 접속*/
+    ALTER SESSION SET "_ORACLE_SCRIPT" = TRUE;
+
+    -- 할당된 저장 공간 용량 변경
+    ALTER USER KH_CWC
+    DEFAULT TABLESPACE USERS
+    QUOTA 200M ON USERS;
+
+    /* 다시 KH 계정 접속*/
+
+
+    -- TB_IDX_TEST 테이블에
+    -- 샘플 데이터 100만개 삽입(PL/SQL 사용) - 절차적 언어 방식
+    BEGIN
+      FOR I IN 1..1000000
+      LOOP 
+        INSERT INTO TB_IDX_TEST
+        VALUES (I, 'TEST' || I);
+      END LOOP;
+      
+      COMMIT;
+    END;
+
+
+
+
+**************[ DCL (Data Control Language) ] : 데이터 제어 언어
+
+  * - 계정별로 DB 또는 DB 객체에 대한 
+  *   접근(제어) 권한을 부여(GRANT), 회수(REVOKE)하는 언어
+
+  * 계정(사용자)
+  1) 관리자 계정 : 데이터베이스의 생성과 관리를 담당하는 계정.
+
+  2) 사용자 계정 : 데이터베이스에 대하여 질의, 갱신, 보고서 작성 등의
+                작업을 수행할 수 있는 계정으로
+                업무에 필요한 최소한의 권한만을 가지는 것을 원칙으로 한다.
+
+  * 권한의 종류
+
+  1) 시스템 권한 : DB접속, 객체 생성 권한 
+
+    CRETAE SESSION   : 데이터베이스 접속 권한
+    CREATE TABLE     : 테이블 생성 권한
+    CREATE VIEW      : 뷰 생성 권한
+    CREATE SEQUENCE  : 시퀀스 생성 권한
+    CREATE PROCEDURE : 함수(프로시져) 생성 권한
+    CREATE USER      : 사용자(계정) 생성 권한
+    DROP USER        : 사용자(계정) 삭제 권한
+    DROP ANY TABLE   : 임의 테이블 삭제 권한
+
+  2) 객체 권한 : 특정 객체를 조작할 수 있는 권한
+
+    권한 종류                 설정 객체
+    SELECT              TABLE, VIEW, SEQUENCE
+    INSERT              TABLE, VIEW
+    UPDATE              TABLE, VIEW
+    DELETE              TABLE, VIEW
+    ALTER               TABLE, SEQUENCE
+    REFERENCES          TABLE
+    INDEX               TABLE
+    EXECUTE             PROCEDURE
+
+
+    [작성 예제]
+  /* (관리자 계정 접속) -> 사용자 계정 생성 + 권한 부여하기 */
+
+    ALTER SESSION SET "_ORACLE_SCRIPT" = TRUE;
+    --> 계정명을 있는 그대로 쓸수 있게 함
+
+  /*  사용자 계정 생성 하기 */
+    CREATE USER 계정명 IDENTIFIED BY TEST1234;
+
+  /*  TEST_USER 계정에 접속 권한 추가 */
+  /*  권한 부여 방법 : GRANT 권한, 권한 .... TO 계정명; */
+    GRANT CREATE SESSION TO 계정명;
+  
+    * TEST_USER 계정에는
+    * 데이터 베이스 접속 권한인 CREATE SESSION만 부여됨
+
+  /*  사용 가능한 용량은 10M로 제한 */
+    ALTER USER 계정명
+    DEFAULT TABLESPACE USERS
+    QUOTA 10M ON USERS;
+
+  /* 기본 객체 제어 권한 부여 */
+    GRANT RESOURCE TO 계정명;
+
+
+/* --------------------------------------------------------- */
+
+  ******* ROLE(역할 == 역할에 맞는 권한의 묶음)
+    * 
+    * RESOURCE(자원) : 8개 객체 제어 권한을 묶어둔 ROLE
+    * 
+    * CONNECT(접속)  : DB접속 권한
+
+/* --------------------------------------------------------- */
+
+  **[작성예제2]
+
+  /* KH 계정 접속 */
+  /* 객체 권한 테스트 */
+
+  /*   KH 계정이 가지고 있는 테이블 중
+  *  EMPLOYEE 테이블에 대한 SELECT 권한을
+  *  TEST_USER 계정에 부여하기 */
+
+    GRANT SELECT ON 테이블 명
+    TO 계정명;
+
+  /* TEST_USER 계정 접속 */
+  /*  SELECT 권한을 부여 받은 KH계정의 EMPLOYEE 테이블 조회 */
+
+    SELECT * FROM KH_CWC.테이블명;
+
+  /* KH계정 접속*/
+  /* SELECT 권한 회수(REVOKE) */
+
+    REVOKE SELECT ON 테이블 명
+    FROM 계정명;
+
+  /* 관리자 계정 접속 */
+
+    ALTER SESSION SET "_ORACLE_SCRIPT" = TRUE;
+
+    /* TEST_USER 계정 삭제(DROP USER 계정명) */
+
+    DROP USER TEST_USER;
