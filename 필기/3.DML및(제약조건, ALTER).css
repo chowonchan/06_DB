@@ -251,7 +251,7 @@ COMMENT ON COLUMN "MEMBER".ENROLL_DATE IS '회원 가입일';
                   -> 단, 비교불가인 값이 없는 NULL은 가능
 
       PRIMARY KEY : 각 행을 구분하기 위한 식별 역할의 컬럼을 지정
-                  -> 컬럼에 저장된 겂만 알면 모든 행을 구별 할 수 있음
+                  -> 컬럼에 저장된 값만 알면 모든 행을 구별 할 수 있음
                   -> 중복 x (UNIQUE) + 무조건 값이 존재(NOT NULL)
                   -> PK는 테이블에 1개만 존재 가능 (한 컬럼X)
 
@@ -295,7 +295,7 @@ COMMENT ON COLUMN "MEMBER".ENROLL_DATE IS '회원 가입일';
 
     하단에 
 
-    CONSTRAINT USER_ID_U UNIQUEUNIQUE (USER_ID) 라고도 작성한다
+    CONSTRAINT USER_ID_U UNIQUE (USER_ID) 라고도 작성한다
 
 
     -- UNIQUE 복합키 : 여러 컬럼이 중복이어야 중복
