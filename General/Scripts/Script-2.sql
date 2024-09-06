@@ -43,6 +43,7 @@ INSERT INTO TB_USER
 VALUES(SEQ_USER_NO.NEXTVAL, 'user04', 'pass04', '이순신', DEFAULT);
 
 
+
 SELECT * FROM TB_USER;
 
 
@@ -105,6 +106,15 @@ SELECT COUNT(*) -- 조회되는 행의 개수
 FROM TB_USER
 WHERE USER_ID = 'user03';
 
+-- 중복된 아이디가 있는 지 조회
+SELECT *
+FROM TB_USER
+WHERE USER_ID = 'user03';
+
+SELECT *
+FROM TB_USER
+WHERE USER_NO = '1';
+
 
 
 
@@ -127,6 +137,11 @@ WHERE
 		USER_PW = 'pass01';
 
 ROLLBACK;
+
+
+
+
+
 
 
 
