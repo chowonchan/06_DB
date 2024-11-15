@@ -663,8 +663,32 @@ REFERENCES "STORY" (
 
 
 
+CREATE SEQUENCE SEQ_MEMBER_NO NOCACHE;
 
 
+-- 샘플 회원 데이터 삽입
+INSERT INTO "MEMBER"
+VALUES(SEQ_MEMBER_NO.NEXTVAL,'member','pass01!', 
+			'member01@kh.or.kr',
+			'닉네임','샘플',  NULL, DEFAULT, DEFAULT, NULL
+			, NULL, DEFAULT, DEFAULT, DEFAULT);
+		
+INSERT INTO "MEMBER"
+VALUES(SEQ_MEMBER_NO.NEXTVAL,'member4','pass04!', 
+			'member03@kh.or.kr',
+			'닉네임4','배고파4',  NULL, DEFAULT, DEFAULT, NULL
+			, NULL, DEFAULT, DEFAULT, DEFAULT);
+		
+COMMIT;
+
+
+UPDATE "MEMBER"
+SET
+	 "MEMBER_PW" = '$2a$10$m1sZd3JwzvcUyQukOiXrHOsie0s7RSvqpWLMATGy4RhyJ2DHOb47q'
+WHERE
+	"MEMBER_NO" = 2;
+
+COMMIT;
 
 
 
