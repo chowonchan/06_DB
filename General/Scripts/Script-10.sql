@@ -108,6 +108,19 @@ UPDATE "COMMENT"
 SET COMMENT_DEL_FL = 'N'
 WHERE COMMENT_NO = '27';
 
+		SELECT CASE 
+		    WHEN EXISTS (
+		    
+		        SELECT 1
+		        FROM "NOTIFICATION"
+		        WHERE NOTIFICATION_CHECK = 'N'
+		        AND RECEIVE_MEMBER_NO = 2
+		        
+		    ) THEN 'true'
+		    ELSE 'false'
+		END AS hasUnread
+		FROM DUAL;
+
 
 
 
